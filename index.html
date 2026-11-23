@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Čas se ztratit – Expediční hra</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="app-header">
+        <h1 class="game-title">ČAS SE ZTRATIT</h1>
+        <div id="gps-status" class="gps-status-bar">
+            <span class="status-dot"></span>
+            <span id="gps-text">Ověřuji GPS...</span>
+        </div>
+    </header>
+
+    <main id="app-container" class="app-main">
+
+        <!-- 1. ZOBRAZENÍ GRAFICKÝCH KARET (ZADÁNÍ / HLÁŠENÍ) -->
+        <section id="card-display-section" class="screen-section hidden">
+            <div id="image-container" class="image-wrapper"></div>
+        </section>
+
+        <!-- PANEL PRO BOŽÍ KÁMEN (5 INDICIÍ + NÁPOVĚDA) -->
+        <section id="indicia-panel-b" class="screen-section hidden">
+            <h3 class="panel-title">Nalezené indicie v terénu:</h3>
+            <div class="indicia-buttons-grid">
+                <button id="indicia-btn-1" class="btn btn-indicia" disabled>Indicie 1 (Zamčeno)</button>
+                <button id="indicia-btn-2" class="btn btn-indicia" disabled>Indicie 2 (Zamčeno)</button>
+                <button id="indicia-btn-3" class="btn btn-indicia" disabled>Indicie 3 (Zamčeno)</button>
+                <button id="indicia-btn-4" class="btn btn-indicia" disabled>Indicie 4 (Zamčeno)</button>
+                <button id="indicia-btn-5" class="btn btn-indicia" disabled>Indicie 5 (Zamčeno)</button>
+                <button id="indicia-btn-6" class="btn btn-indicia btn-help" disabled>Nápověda (Zamčeno)</button>
+            </div>
+        </section>
+
+        <!-- 2. PŘEHRÁVAČ VIDEÍ -->
+        <section id="video-section" class="screen-section hidden">
+            <div class="video-wrapper">
+                <iframe id="game-video" src="" title="Video ke hře" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+        </section>
+
+        <!-- 3. INTERAKTIVNÍ MAPA (Startovní šifra) -->
+        <section id="map-section" class="screen-section hidden">
+            <div class="map-instruction">
+                <p>Kliknutím do mapy označte hledané místo na startovní šifře.</p>
+            </div>
+            <div id="interactive-map"></div>
+            <button id="confirm-pin-btn" class="btn btn-primary" disabled>Potvrdit označené místo</button>
+        </section>
+
+        <!-- 4. HLAVNÍ OVLÁDACÍ FORMULÁŘE -->
+        <section id="controls-section" class="screen-section">
+
+            <!-- Formulář pro 1 textové heslo -->
+            <form id="password-form" class="control-form hidden">
+                <label for="password-input" class="form-label">Zadejte heslo k úkolu:</label>
+                <input type="text" id="password-input" class="form-control" autocomplete="off" placeholder="Napište heslo...">
+                <button type="submit" class="btn btn-primary">Odeslat heslo</button>
+            </form>
+
+            <!-- Formulář pro Google Forms (Hrad Strakonice) -->
+            <div id="google-forms-container" class="control-form hidden">
+                <a id="google-forms-link" href="#" target="_blank" class="btn btn-gold">Otevřít dotazník (Google Forms)</a>
+            </div>
+
+            <!-- Formulář pro 3 Výběrové otázky (Boží kámen) -->
+            <form id="triple-select-form" class="control-form hidden">
+                <label class="form-label">Vyberte správné odpovědi:</label>
+                <div class="select-group">
+                    <label for="select-q1" id="label-q1">1. Rok objevu:</label>
+                    <select id="select-q1" class="form-control"></select>
+                </div>
+                <div class="select-group">
+                    <label for="select-q2" id="label-q2">2. Místo nálezu:</label>
+                    <select id="select-q2" class="form-control"></select>
+                </div>
+                <div class="select-group">
+                    <label for="select-q3" id="label-q3">3. Nalezený předmět:</label>
+                    <select id="select-q3" class="form-control"></select>
+                </div>
+                <button type="submit" class="btn btn-primary">Odeslat odpovědi</button>
+            </form>
+
+            <!-- Formulář pro 2 textová hesla (Skalka) -->
+            <form id="dual-password-form" class="control-form hidden">
+                <label class="form-label">Zadejte dvě vyluštěná data (roky):</label>
+                <input type="number" id="pass-input-1" class="form-control" placeholder="1. rok">
+                <input type="number" id="pass-input-2" class="form-control" placeholder="2. rok">
+                <button type="submit" class="btn btn-primary">Odeslat obě data</button>
+            </form>
+
+            <!-- Tlačítko pro Odpočet oběda (20 min) -->
+            <div id="timer-container" class="control-form hidden">
+                <div id="timer-display" class="timer-countdown">20:00</div>
+                <button id="start-timer-btn" class="btn btn-primary">Zahájit obědovou pauzu</button>
+                <button id="finish-timer-btn" class="btn btn-success hidden">Pokračovat v hře</button>
+            </div>
+
+            <!-- Tlačítko pro Losování -->
+            <div id="draw-container" class="control-form hidden">
+                <button id="draw-btn" class="btn btn-gold">Vylosovat další historickou destinaci</button>
+            </div>
+
+            <!-- Navigační tlačítko pro posun -->
+            <div id="next-step-container" class="control-form hidden">
+                <button id="next-step-btn" class="btn btn-primary">Rozumím, vyrazit na místo</button>
+            </div>
+
+            <div id="feedback-message" class="feedback-msg"></div>
+        </section>
+
+    </main>
+
+    <footer class="app-footer">
+        <p>Při vytváření webové hry byla použita generativní AI.</p>
+    </footer>
+
+    <!-- POP-UP MODAL PRO INDICIE -->
+    <div id="popup-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button id="close-modal-btn" class="modal-close-btn">&times;</button>
+            <div class="modal-body">
+                <img id="popup-indicia-img" src="" alt="Indicie v terénu">
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="gameData.js"></script>
+    <script src="app.js"></script>
+
+</body>
+</html>
